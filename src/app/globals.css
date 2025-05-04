@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Joystix";
+  src: url("fonts/Joystix.otf") format("opentype");
+  font-weight: 500;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Joystix", Helvetica, sans-serif;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+img {
+  image-rendering: pixelated;
+}
+
+button {
+  &:hover {
+    cursor: pointer;
+  }
+}
