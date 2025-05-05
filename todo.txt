@@ -1,0 +1,27 @@
+
+[ ] All animals
+    [ ] Code
+    [ ] Pictures
+[ ] All regions
+    [ ] Code
+    [ ] Pictures
+[ ] Animal selector
+    [X] Function
+    [ ] Style
+    [ ] Reset button
+[ ] Region selector
+    [X] Function
+    [ ] Style
+[ ] Grid
+    [X] Set animal
+    [ ] Set null
+    [X] Calculate %
+    [ ] Display max %
+    [ ] Display max % for each animal
+    [ ] Reset button
+    [ ] Undo last action
+    [ ] Prioritize animal
+    [ ] Track number of attempts
+[ ] Sounds
+    [ ] Buttons
+    [ ] Grid selection

@@ -12,6 +12,10 @@ type Props = {
 export default function AnimalSelector({ region, animals, setAnimals }: Props) {
   const [open, setOpen] = useState<number | undefined>();
 
+  useEffect(() => {
+    setAnimals([undefined, undefined, undefined]);
+  }, [region]);
+
   return (
     <div className="flex m-auto w-fit gap-10 mt-10">
       {[0, 1, 2].map((animalIndex) => (

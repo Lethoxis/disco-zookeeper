@@ -1,4 +1,4 @@
-import { Animal, Rabbit, Sheep } from "@/assets/animals";
+import { Animal } from "@/assets/animals";
 import {
   AnimalGrid,
   getEmptyAnimalGrid,
@@ -8,15 +8,17 @@ import {
   percent,
   ProbabilityGrid,
 } from "@/assets/animalUtils";
+import { Region } from "@/assets/regions";
 import { useEffect, useState } from "react";
 
 const array5 = [0, 1, 2, 3, 4];
 
 type Props = {
+  region: Region;
   animals: Array<Animal>;
 };
 
-export default function Grid({ animals }: Props) {
+export default function Grid({ region, animals }: Props) {
   const [hoveredTile, setHoveredTile] = useState<number[] | undefined>();
   const [animalGrid, setAnimalGrid] = useState<AnimalGrid>(
     getEmptyAnimalGrid(true)
@@ -31,6 +33,10 @@ export default function Grid({ animals }: Props) {
   useEffect(() => {
     if (animals.length > 0) {
       setPossibleAnimalGrids(getPossibleAnimalsGrids(animals));
+    } else {
+      setAnimalGrid(getEmptyAnimalGrid(true));
+      setPossibleAnimalGrids([]);
+      setProbabilityGrid(getEmptyProbabilityGrid(0));
     }
   }, [animals]);
 
@@ -57,7 +63,9 @@ export default function Grid({ animals }: Props) {
               className="relative h-23 w-23 flex justify-center"
             >
               <img
-                src={"/images/regions/Farm.png"}
+                src={`/images/regions/${region.name}${
+                  animalGrid[row][col] === undefined ? "" : "Empty"
+                }.png`}
                 className="absolute -top-[2%] -left-[2%] w-[104%] h-[104%] max-w-[104%] max-h-[104%] -z-10"
               />
 
@@ -106,7 +114,7 @@ export default function Grid({ animals }: Props) {
                   </button>
                 </div>
               ) : animalGrid[row][col] === null ? (
-                <img className="h-fit m-auto" src={`/images/animals/X.png`} />
+                <></>
               ) : animalGrid[row][col] !== undefined ? (
                 <img
                   className="h-fit m-auto"
@@ -122,7 +130,7 @@ export default function Grid({ animals }: Props) {
                   <div className="flex gap-1 m-auto">
                     {animals.map((a, aIndex) => (
                       <button
-                        key={`animal-percentage-${a.name}`}
+                        key={`animal-percentage-${a.name}-${aIndex}`}
                         className="flex flex-col gap-0.5 group"
                         onClick={() =>
                           setAnimalGrid((prev) => {
