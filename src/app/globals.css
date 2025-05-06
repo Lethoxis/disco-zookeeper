@@ -30,3 +30,8 @@ button {
     cursor: pointer;
   }
 }
+
+.line-shadow::after {
+  content: "";
+  @apply absolute bottom-0 left-0 bg-black/7 h-[30%] w-full;
+}

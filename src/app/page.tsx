@@ -2,7 +2,9 @@
 import { Animal, Cow, Sheep } from "@/assets/animals";
 import { regions } from "@/assets/regions";
 import AnimalSelector from "@/components/animalSelector";
+import Footer from "@/components/footer";
 import Grid from "@/components/grid";
+import Header from "@/components/header";
 import RegionSelector from "@/components/regionSelector";
 import { useState } from "react";
 
@@ -15,12 +17,14 @@ export default function Home() {
   ]);
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden">
+    <main className="flex flex-col relative w-screen h-screen overflow-hidden">
       {/* Background */}
       <div
         className="absolute top-0 left-0 w-screen h-screen -z-50 transition-all duration-500"
         style={{ backgroundColor: region.backgroundColor }}
       />
+
+      <Header region={region} />
 
       <AnimalSelector
         region={region}
@@ -32,9 +36,11 @@ export default function Home() {
         <RegionSelector region={region} setRegion={setRegion} />
       </div>
 
-      <div className="flex justify-center m-auto mt-10">
+      <div className="flex justify-center m-auto">
         <Grid region={region} animals={animals.filter((a) => !!a)} />
       </div>
+
+      <Footer />
     </main>
   );
 }
