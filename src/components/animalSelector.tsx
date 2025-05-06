@@ -17,7 +17,7 @@ export default function AnimalSelector({ region, animals, setAnimals }: Props) {
   }, [region]);
 
   return (
-    <div className="flex m-auto w-fit gap-10 mt-10">
+    <div className="flex mx-auto w-fit gap-10">
       {[0, 1, 2].map((animalIndex) => (
         <Menu
           as="div"
