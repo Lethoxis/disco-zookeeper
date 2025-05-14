@@ -12,7 +12,7 @@ type Props = {
   animalCounts: Array<number>;
 };
 
-const POP_DELAY = 30; // ms
+const POP_DELAY = 25; // ms
 
 export default function AnimalSelector({
   region,
@@ -181,12 +181,13 @@ export default function AnimalSelector({
                 transitionDelay: `${POP_DELAY * 8}ms`,
               }}
               onClick={() => {
-                animals[selectorIndex] !== undefined &&
+                if (animals[selectorIndex] !== undefined) {
                   setAnimals((prev) => {
                     const newAnimals = [...prev];
                     newAnimals[selectorIndex] = undefined;
                     return newAnimals;
                   });
+                }
                 setOpen(undefined);
               }}
             >

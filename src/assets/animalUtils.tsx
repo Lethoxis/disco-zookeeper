@@ -35,7 +35,7 @@ export const getPossibleAnimalGrids = (
     for (let col = 0; col < 5; col++) {
       let isGridValid = true;
 
-      for (let coord of animal.coords) {
+      for (const coord of animal.coords) {
         if (row + coord[0] >= 5 || col + coord[1] >= 5) {
           isGridValid = false;
         } else if (
@@ -51,7 +51,7 @@ export const getPossibleAnimalGrids = (
           ? structuredClone(startingGrid)
           : getEmptyAnimalGrid();
 
-        for (let coord of animal.coords) {
+        for (const coord of animal.coords) {
           animalGrid[row + coord[0]][col + coord[1]] = value;
         }
 
@@ -78,7 +78,7 @@ export const getPossibleAnimalsGrids = (
       animalGrids = getPossibleAnimalGrids(animal, i);
     } else {
       const expandedAnimalGrids: Array<AnimalGrid> = [];
-      for (let grid of animalGrids) {
+      for (const grid of animalGrids) {
         expandedAnimalGrids.push(...getPossibleAnimalGrids(animal, i, grid));
       }
       animalGrids = [...expandedAnimalGrids];
