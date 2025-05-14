@@ -1,9 +1,10 @@
 
 [ ] All animals
-    [ ] Code
+    [X] Code
     [ ] Pictures
+[X] Pets
 [ ] All regions
-    [ ] Code
+    [X] Code
     [ ] Pictures
 [ ] Animal selector
     [X] Function
