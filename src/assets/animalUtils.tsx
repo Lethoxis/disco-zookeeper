@@ -64,19 +64,23 @@ export const getPossibleAnimalGrids = (
 };
 
 export const getPossibleAnimalsGrids = (
-  animals: Array<Animal>
+  animals: Array<Animal | undefined>
 ): Array<AnimalGrid> => {
   let animalGrids: Array<AnimalGrid> = [];
+  let firstNonUndefinedIndex = 0;
 
   for (let i = 0; i < animals.length; i++) {
-    if (i === 0) {
-      animalGrids = getPossibleAnimalGrids(animals[i], i);
+    const animal = animals[i];
+
+    console.log(animal, i);
+    if (animal === undefined) {
+      firstNonUndefinedIndex++;
+    } else if (i === firstNonUndefinedIndex) {
+      animalGrids = getPossibleAnimalGrids(animal, i);
     } else {
       const expandedAnimalGrids: Array<AnimalGrid> = [];
       for (let grid of animalGrids) {
-        expandedAnimalGrids.push(
-          ...getPossibleAnimalGrids(animals[i], i, grid)
-        );
+        expandedAnimalGrids.push(...getPossibleAnimalGrids(animal, i, grid));
       }
       animalGrids = [...expandedAnimalGrids];
     }

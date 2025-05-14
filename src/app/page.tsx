@@ -60,7 +60,7 @@ export default function Home() {
       <div className="flex justify-center m-auto">
         <Grid
           region={region}
-          animals={animals.filter((a) => !!a)}
+          animals={animals}
           animalCounts={animalCounts}
           setAnimalCounts={setAnimalCounts}
         />

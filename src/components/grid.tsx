@@ -27,7 +27,7 @@ const array5 = [0, 1, 2, 3, 4];
 
 type Props = {
   region: Region;
-  animals: Array<Animal>;
+  animals: Array<Animal | undefined>;
   animalCounts: number[];
   setAnimalCounts: Dispatch<SetStateAction<number[]>>;
 };
@@ -55,7 +55,7 @@ export default function Grid({
 
   // Functions
   const animalNames = useMemo(
-    () => animals.map((a) => a.name).join(","),
+    () => animals.map((a) => a?.name ?? "none").join(","),
     [animals]
   );
   useEffect(() => {
@@ -110,7 +110,10 @@ export default function Grid({
 
     if (value === null) {
       playEmpty();
-    } else if (animalCounts[value] === animals[value].coords.length - 1) {
+    } else if (
+      animalCounts[value] ===
+      (animals[value]?.coords.length ?? 0) - 1
+    ) {
       playFoundAll();
     } else {
       playFoundOne();
@@ -119,6 +122,97 @@ export default function Grid({
     setAnimalGrid(newAnimalGrid);
     updateAnimalCounts(newAnimalGrid);
   };
+
+  // Grid Tile
+  function GridTile({ row, col }: { row: number; col: number }) {
+    const value = animalGrid[row][col];
+    const pbty = probabilityGrid[row][col];
+
+    // Nothing
+    if (!animals.length || value === null) {
+      return <></>;
+    }
+
+    // Animal is selected
+    if (value !== undefined) {
+      const tileAnimal = animals[value];
+
+      if (tileAnimal === undefined) {
+        return <></>;
+      } else {
+        return (
+          <>
+            <img
+              className="absolute top-[1px] left-0 w-full h-full p-[5%] z-10"
+              src={`/images/rarities/${tileAnimal.rarity.name}.png`}
+            />
+            <img
+              className="w-[75%] h-[75%] m-auto z-20"
+              src={`/images/animals/${tileAnimal.name}.png`}
+            />
+          </>
+        );
+      }
+    }
+
+    const identifiedAnimalIndex = indexOfIdentifiedAnimal(pbty.animalValues);
+
+    // Animal is 100% identified
+    if (identifiedAnimalIndex >= 0) {
+      const identifiedTileAnimal = animals[identifiedAnimalIndex];
+
+      if (identifiedTileAnimal === undefined) {
+        return <></>;
+      } else {
+        return (
+          <div
+            className="flex w-full h-full opacity-40 cursor-pointer"
+            onClick={() => setAnimal(row, col, identifiedAnimalIndex)}
+          >
+            <img
+              className="absolute top-[1px] left-0 w-full h-full p-[5%] z-10"
+              src={`/images/rarities/${identifiedTileAnimal.rarity.name}.png`}
+            />
+            <img
+              className="relative w-[75%] h-[75%] m-auto z-20"
+              src={`/images/animals/${identifiedTileAnimal.name}.png`}
+            />
+          </div>
+        );
+      }
+    }
+
+    // Display probabilities
+    return (
+      <div className="flex flex-col h-fit gap-0.5 m-auto text-center">
+        <div onClick={() => setAnimal(row, col, null)}>
+          {percent(pbty.value)}
+        </div>
+        {pbty.value > 0 && (
+          <div className="flex gap-1 m-auto">
+            {animals.map(
+              (a, aIndex) =>
+                pbty.animalValues[aIndex] > 0 && (
+                  <button
+                    key={`animal-percentage-${a?.name}-${aIndex}`}
+                    className="flex flex-col gap-0.5 group"
+                    onClick={() => setAnimal(row, col, aIndex)}
+                  >
+                    <img
+                      src={`/images/animals/${a?.name}.png`}
+                      className="h-7 w-7 group-hover:shadow-[0_2px_3px_#00000080]"
+                    />
+                    <p className="text-[0.65rem]">
+                      {percent(pbty.animalValues[aIndex])}
+                    </p>
+                  </button>
+                )
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-fit shadow-md">
@@ -136,91 +230,7 @@ export default function Grid({
                 className="absolute -top-[2%] -left-[2%] w-[104%] h-[104%] max-w-[104%] max-h-[104%] -z-10"
               />
 
-              {!animals.length || animalGrid[row][col] === null ? (
-                <></>
-              ) : animalGrid[row][col] !== undefined ? (
-                <>
-                  <img
-                    className="absolute top-[1px] left-0 w-full h-full p-[5%] z-10"
-                    src={`/images/rarities/${
-                      animals[animalGrid[row][col]].rarity.name
-                    }.png`}
-                  />
-                  <img
-                    className="w-[75%] h-[75%] m-auto z-20"
-                    src={`/images/animals/${
-                      animals[animalGrid[row][col]].name
-                    }.png`}
-                  />
-                </>
-              ) : /* Percentage */
-              indexOfIdentifiedAnimal(probabilityGrid[row][col].animalValues) >=
-                0 ? (
-                <div
-                  className="flex w-full h-full opacity-40 cursor-pointer"
-                  onClick={() =>
-                    setAnimal(
-                      row,
-                      col,
-                      indexOfIdentifiedAnimal(
-                        probabilityGrid[row][col].animalValues
-                      )
-                    )
-                  }
-                >
-                  <img
-                    className="absolute top-[1px] left-0 w-full h-full p-[5%] z-10"
-                    src={`/images/rarities/${
-                      animals[
-                        indexOfIdentifiedAnimal(
-                          probabilityGrid[row][col].animalValues
-                        )
-                      ].rarity.name
-                    }.png`}
-                  />
-                  <img
-                    className="relative w-[75%] h-[75%] m-auto z-20"
-                    src={`/images/animals/${
-                      animals[
-                        indexOfIdentifiedAnimal(
-                          probabilityGrid[row][col].animalValues
-                        )
-                      ].name
-                    }.png`}
-                  />
-                </div>
-              ) : (
-                <div className="flex flex-col h-fit gap-0.5 m-auto text-center">
-                  <div onClick={() => setAnimal(row, col, null)}>
-                    {percent(probabilityGrid[row][col].value)}
-                  </div>
-                  {probabilityGrid[row][col].value > 0 && (
-                    <div className="flex gap-1 m-auto">
-                      {animals.map(
-                        (a, aIndex) =>
-                          probabilityGrid[row][col].animalValues[aIndex] >
-                            0 && (
-                            <button
-                              key={`animal-percentage-${a.name}-${aIndex}`}
-                              className="flex flex-col gap-0.5 group"
-                              onClick={() => setAnimal(row, col, aIndex)}
-                            >
-                              <img
-                                src={`/images/animals/${a.name}.png`}
-                                className="h-7 w-7 group-hover:shadow-[0_2px_3px_#00000080]"
-                              />
-                              <p className="text-[0.65rem]">
-                                {percent(
-                                  probabilityGrid[row][col].animalValues[aIndex]
-                                )}
-                              </p>
-                            </button>
-                          )
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+              <GridTile row={row} col={col} />
             </div>
           ))}
         </div>
