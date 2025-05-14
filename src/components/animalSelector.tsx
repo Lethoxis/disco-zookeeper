@@ -46,12 +46,13 @@ export default function AnimalSelector({
         transitionDelay: `${POP_DELAY * aIndex}ms`,
       }}
       onClick={() => {
-        !animals.map((a) => a?.name).includes(animal.name) &&
+        if (!animals.map((a) => a?.name).includes(animal.name)) {
           setAnimals((prev) => {
             const newAnimals = [...prev];
             newAnimals[selectorIndex] = animal;
             return newAnimals;
           });
+        }
         setOpen(undefined);
       }}
     >
