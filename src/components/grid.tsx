@@ -3,10 +3,13 @@ import {
   AnimalGrid,
   getEmptyAnimalGrid,
   getEmptyProbabilityGrid,
+  getMaxProbability,
   getPossibleAnimalsGrids,
   getProbabilityGrid,
   indexOfIdentifiedAnimal,
+  isMax,
   percent,
+  Probability,
   ProbabilityGrid,
 } from "@/assets/animalUtils";
 import { Region } from "@/assets/regions";
@@ -19,11 +22,19 @@ import {
   useState,
 } from "react";
 import empty from "../app/sounds/empty.mp3";
+import undo from "../app/sounds/undo.mp3";
 import foundOne from "../app/sounds/foundOne.mp3";
 import foundAll from "../app/sounds/foundAll.mp3";
 import useSound from "use-sound";
+import AnimalTile from "./animalTile";
 
 const array5 = [0, 1, 2, 3, 4];
+
+type GridAction = {
+  row: number;
+  col: number;
+  animal: number | null;
+};
 
 type Props = {
   region: Region;
@@ -47,32 +58,37 @@ export default function Grid({
   const [probabilityGrid, setProbabilityGrid] = useState<ProbabilityGrid>(
     getEmptyProbabilityGrid(0)
   );
+  const [maxProbability, setMaxProbability] = useState<Probability>();
+  const [actions, setActions] = useState<GridAction[]>([]);
 
   // Sounds
   const [playEmpty] = useSound(empty);
   const [playFoundOne] = useSound(foundOne);
   const [playFoundAll] = useSound(foundAll);
+  const [playUndo] = useSound(undo);
 
   // Functions
   const animalNames = useMemo(
-    () => animals.map((a) => a?.name ?? "none").join(","),
+    () => animals.map((a) => a?.name ?? "").join("/"),
     [animals]
   );
-  useEffect(() => {
-    if (animals.length > 0) {
-      setAnimalGrid(getEmptyAnimalGrid(true));
-      setAnimalCounts([0, 0, 0, 0]);
-      setPossibleAnimalGrids(getPossibleAnimalsGrids(animals));
-    }
-  }, [animalNames]);
 
-  useEffect(() => {
-    if (animals.length === 0) {
-      setAnimalGrid(getEmptyAnimalGrid(true));
-      setAnimalCounts([0, 0, 0, 0]);
+  const resetGrid = () => {
+    setAnimalGrid(getEmptyAnimalGrid(true));
+    setAnimalCounts([0, 0, 0, 0]);
+    setActions([]);
+
+    // Reset
+    if (animalNames === "//") {
       setPossibleAnimalGrids([]);
     }
-  }, [animals.length]);
+    // Update possible animal grids
+    else {
+      setPossibleAnimalGrids(getPossibleAnimalsGrids(animals));
+    }
+  };
+
+  useEffect(resetGrid, [animalNames]);
 
   useEffect(() => {
     const filteredGrids = possibleAnimalGrids.filter((grid) =>
@@ -81,7 +97,12 @@ export default function Grid({
       )
     );
 
-    setProbabilityGrid(getProbabilityGrid(filteredGrids, animals.length));
+    const newProbabilityGrid = getProbabilityGrid(
+      filteredGrids,
+      animals.length
+    );
+    setProbabilityGrid(newProbabilityGrid);
+    setMaxProbability(getMaxProbability(newProbabilityGrid));
   }, [possibleAnimalGrids, animalGrid]);
 
   const updateAnimalCounts = useCallback(
@@ -104,11 +125,16 @@ export default function Grid({
     [setAnimalCounts]
   );
 
-  const setAnimal = (row: number, col: number, value: number | null) => {
+  const setAnimal = (
+    row: number,
+    col: number,
+    value: number | null | undefined
+  ) => {
     const newAnimalGrid = structuredClone(animalGrid);
     newAnimalGrid[row][col] = value;
 
-    if (value === null) {
+    if (value === undefined) {
+    } else if (value === null) {
       playEmpty();
     } else if (
       animalCounts[value] ===
@@ -119,17 +145,43 @@ export default function Grid({
       playFoundOne();
     }
 
+    if (value !== undefined) {
+      setActions([
+        ...actions,
+        {
+          row,
+          col,
+          animal: value,
+        },
+      ]);
+    }
+
     setAnimalGrid(newAnimalGrid);
     updateAnimalCounts(newAnimalGrid);
   };
 
-  // Grid Tile
+  const undoLastAction = () => {
+    if (actions.length === 0) {
+      return;
+    }
+
+    const lastAction = actions[actions.length - 1];
+    const newAnimalGrid = structuredClone(animalGrid);
+    newAnimalGrid[lastAction.row][lastAction.col] = undefined;
+
+    playUndo();
+    setActions(actions.splice(0, actions.length - 1));
+    setAnimalGrid(newAnimalGrid);
+    updateAnimalCounts(newAnimalGrid);
+  };
+
+  // Grid Tile ------------------------------------------------------------------------
   function GridTile({ row, col }: { row: number; col: number }) {
     const value = animalGrid[row][col];
     const pbty = probabilityGrid[row][col];
 
     // Nothing
-    if (!animals.length || value === null) {
+    if (animalNames === "//" || value === null) {
       return <></>;
     }
 
@@ -140,18 +192,7 @@ export default function Grid({
       if (tileAnimal === undefined) {
         return <></>;
       } else {
-        return (
-          <>
-            <img
-              className="absolute top-[1px] left-0 w-full h-full p-[5%] z-10"
-              src={`/images/rarities/${tileAnimal.rarity.name}.png`}
-            />
-            <img
-              className="w-[75%] h-[75%] m-auto z-20"
-              src={`/images/animals/${tileAnimal.name}.png`}
-            />
-          </>
-        );
+        return <AnimalTile animal={tileAnimal} />;
       }
     }
 
@@ -169,14 +210,7 @@ export default function Grid({
             className="flex w-full h-full opacity-40 cursor-pointer"
             onClick={() => setAnimal(row, col, identifiedAnimalIndex)}
           >
-            <img
-              className="absolute top-[1px] left-0 w-full h-full p-[5%] z-10"
-              src={`/images/rarities/${identifiedTileAnimal.rarity.name}.png`}
-            />
-            <img
-              className="relative w-[75%] h-[75%] m-auto z-20"
-              src={`/images/animals/${identifiedTileAnimal.name}.png`}
-            />
+            <AnimalTile animal={identifiedTileAnimal} />
           </div>
         );
       }
@@ -185,24 +219,52 @@ export default function Grid({
     // Display probabilities
     return (
       <div className="flex flex-col h-fit gap-0.5 m-auto text-center">
-        <div onClick={() => setAnimal(row, col, null)}>
+        <div className={isMax(pbty, maxProbability) ? "text-white" : ""}>
           {percent(pbty.value)}
         </div>
+
+        {/* Set null */}
+        <button
+          className="absolute top-1 right-1 h-5 w-5"
+          onClick={() => setAnimal(row, col, null)}
+        >
+          <img
+            className="absolute top-0 left-0 w-full h-full z-10"
+            src={`/images/ui/x.png`}
+          />
+          <p className="relative m-auto z-20 text-white text-[0.5rem] text-shadow-md">
+            X
+          </p>
+        </button>
+
         {pbty.value > 0 && (
-          <div className="flex gap-1 m-auto">
+          <div className="flex m-auto">
+            {/* Animals */}
             {animals.map(
               (a, aIndex) =>
+                a &&
                 pbty.animalValues[aIndex] > 0 && (
                   <button
-                    key={`animal-percentage-${a?.name}-${aIndex}`}
-                    className="flex flex-col gap-0.5 group"
+                    key={`animal-percentage-${a.name}-${aIndex}`}
+                    className="flex flex-col group"
                     onClick={() => setAnimal(row, col, aIndex)}
                   >
-                    <img
-                      src={`/images/animals/${a?.name}.png`}
-                      className="h-7 w-7 group-hover:shadow-[0_2px_3px_#00000080]"
-                    />
-                    <p className="text-[0.65rem]">
+                    <div className="relative flex h-8 w-8">
+                      <AnimalTile
+                        animal={a}
+                        percentage={pbty.animalValues[aIndex] * 100}
+                        bgClassName={`${
+                          isMax(pbty, maxProbability, aIndex)
+                            ? " drop-shadow-white drop-shadow-lg/70 group-hover:drop-shadow-lg/100"
+                            : "group-hover:drop-shadow-md/30"
+                        }`}
+                      />
+                    </div>
+                    <p
+                      className={`font-Pixapp text-[0.7rem] ${
+                        isMax(pbty, maxProbability, aIndex) ? "text-white" : ""
+                      }`}
+                    >
                       {percent(pbty.animalValues[aIndex])}
                     </p>
                   </button>
@@ -214,8 +276,9 @@ export default function Grid({
     );
   }
 
+  // Grid -----------------------------------------------------------------------------
   return (
-    <div className="flex flex-col h-fit shadow-md">
+    <div className="flex flex-col relative h-fit shadow-md">
       {array5.map((_, row) => (
         <div key={`row-${row}`} className="flex flex-row">
           {array5.map((_, col) => (
@@ -235,6 +298,34 @@ export default function Grid({
           ))}
         </div>
       ))}
+
+      {/* Undo */}
+      <div className="flex flex-col gap-4 absolute top-1/2 -translate-y-1/2 left-full ml-10 text-sm/4">
+        <button
+          className="pixel-corners px-5 py-2 text-[#AAAAFF] shadow-lg transition-all duration-200 hover:not-disabled:bg-[#AAAAFF]/10 active:not-disabled:bg-[#AAAAFF]/20 disabled:opacity-60"
+          style={
+            {
+              "--pixel-corners-color": "#AAAAFFB0",
+            } as React.CSSProperties
+          }
+          disabled={actions.length === 0}
+          onClick={undoLastAction}
+        >
+          Undo
+        </button>
+        <button
+          className="pixel-corners px-5 py-2 text-white shadow-lg transition-all duration-200 hover:not-disabled:bg-white/10 active:not-disabled:bg-white/20 disabled:opacity-60"
+          style={
+            {
+              "--pixel-corners-color": "#FFFFFFB0",
+            } as React.CSSProperties
+          }
+          disabled={actions.length === 0}
+          onClick={resetGrid}
+        >
+          Reset
+        </button>
+      </div>
     </div>
   );
 }

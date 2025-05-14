@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Animal } from "@/assets/animals";
 import validate from "../app/sounds/validate.mp3";
 import useSound from "use-sound";
+import AnimalTile from "./animalTile";
 
 type Props = {
   region: Region;
@@ -35,7 +36,7 @@ export default function AnimalSelector({
   ) => (
     <button
       key={`regionAnimal-${animal.name}`}
-      className={`h-full w-full transition-all duration-300 disabled:grayscale ${
+      className={`flex h-full w-full transition-all duration-300 disabled:grayscale ${
         show && open === selectorIndex
           ? "opacity-100 scale-100"
           : "opacity-0 scale-70"
@@ -54,14 +55,7 @@ export default function AnimalSelector({
         setOpen(undefined);
       }}
     >
-      <img
-        className="absolute top-0 left-0 w-full h-full z-10"
-        src={`/images/rarities/${animal.rarity.name}.png`}
-      />
-      <img
-        className="relative w-full h-full p-1 z-20"
-        src={`/images/animals/${animal.name}.png`}
-      />
+      <AnimalTile animal={animal} bgClassName="!p-0" />
     </button>
   );
 

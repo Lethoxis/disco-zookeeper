@@ -72,7 +72,6 @@ export const getPossibleAnimalsGrids = (
   for (let i = 0; i < animals.length; i++) {
     const animal = animals[i];
 
-    console.log(animal, i);
     if (animal === undefined) {
       firstNonUndefinedIndex++;
     } else if (i === firstNonUndefinedIndex) {
@@ -110,6 +109,43 @@ export const getProbabilityGrid = (
       ),
     getEmptyProbabilityGrid(animalCount)
   );
+};
+
+const maxUnder100 = (a: number, b: number) =>
+  a > 0.99 ? b : b > 0.99 ? a : Math.max(a, b);
+
+export const getMaxProbability = (pbGrid: ProbabilityGrid): Probability => {
+  const emptyProbability: Probability = { value: 0, animalValues: [0, 0, 0] };
+
+  const maxPb = (acc: Probability, pb: Probability) => {
+    return {
+      value: maxUnder100(acc.value, pb.value),
+      animalValues: acc.animalValues.map((aValue, i) =>
+        maxUnder100(aValue, pb.animalValues[i])
+      ),
+    };
+  };
+
+  return pbGrid
+    .map((row) => row.reduce(maxPb, emptyProbability))
+    .reduce(maxPb, emptyProbability);
+};
+
+export const isMax = (
+  value: Probability,
+  max: Probability | undefined,
+  animalIndex?: number
+): boolean => {
+  if (!max) {
+    return false;
+  } else if (animalIndex !== undefined) {
+    return (
+      percent(value.animalValues[animalIndex]) ===
+      percent(max.animalValues[animalIndex])
+    );
+  } else {
+    return percent(value.value) === percent(max.value);
+  }
 };
 
 export const percent = (value: number) =>
