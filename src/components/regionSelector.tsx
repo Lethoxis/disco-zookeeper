@@ -9,22 +9,35 @@ type Props = {
 
 export default function RegionSelector({ region, setRegion }: Props) {
   return (
-    <div className="flex m-auto w-fit gap-10">
-      <RadioGroup value={region} onChange={setRegion} className="space-y-2">
-        {regions.map((r) => (
-          <Radio
+    <RadioGroup
+      value={region}
+      onChange={setRegion}
+      className="flex flex-col m-auto w-fit h-fit gap-1"
+    >
+      {regions.map((r) => {
+        const style = {
+          "--pixel-corners-color": r.backgroundColor,
+        } as React.CSSProperties;
+        return (
+          <div
             key={r.name}
-            value={r}
-            className="group relative flex cursor-pointer rounded-lg bg-white/5 px-5 py-2 text-white shadow-md transition focus:not-data-focus:outline-none data-checked:bg-white/10 data-focus:outline data-focus:outline-white"
+            style={style}
+            className={`relative pixel-corners after:brightness-50 transition-all duration-400 hover:translate-x-4 ease-out ${
+              region.name === r.name ? "my-4 hover:!translate-x-0" : ""
+            }`}
           >
-            <div className="flex w-full items-center justify-between">
-              <div className="text-sm/6">
-                <p className="font-semibold text-white">{r.name}</p>
-              </div>
-            </div>
-          </Radio>
-        ))}
-      </RadioGroup>
-    </div>
+            <Radio
+              value={r}
+              className="relative flex cursor-pointer px-5 py-2 text-white shadow-lg active:opacity-70 line-shadow-50"
+              style={{
+                backgroundColor: r.backgroundColor,
+              }}
+            >
+              <p className="text-xs/4 text-white z-20">{r.name}</p>
+            </Radio>
+          </div>
+        );
+      })}
+    </RadioGroup>
   );
 }

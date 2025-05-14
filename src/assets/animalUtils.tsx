@@ -110,3 +110,6 @@ export const getProbabilityGrid = (
 
 export const percent = (value: number) =>
   `${value ? Math.round(value * 100) : 0}%`;
+
+export const indexOfIdentifiedAnimal = (probabilities: number[]) =>
+  probabilities.map(percent).indexOf("100%");

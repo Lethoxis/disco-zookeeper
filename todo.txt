@@ -9,7 +9,8 @@
 [ ] Animal selector
     [X] Function
     [ ] Style
-    [ ] Reset button
+    [X] Reset button
+    [ ] Patterns
 [ ] Region selector
     [X] Function
     [ ] Style
@@ -22,7 +23,7 @@
     [ ] Reset button
     [ ] Undo last action
     [ ] Prioritize animal
-    [ ] Track number of attempts
+    [X] Track number of attempts
 [ ] Sounds
     [ ] Buttons
-    [ ] Grid selection
+    [X] Grid selection

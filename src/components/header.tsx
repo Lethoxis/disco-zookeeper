@@ -1,25 +1,24 @@
 import { Region } from "@/assets/regions";
-import { useEffect, useState } from "react";
 
 type Props = {
   region: Region;
+  attempts: number;
 };
 
-export default function Header({ region }: Props) {
-  const attempts = 10;
-
+export default function Header({ region, attempts }: Props) {
   return (
     <div
-      className="relative flex justify-between items-center w-full h-10 transition-all duration-500 line-shadow shadow-sm border-b border-black/30 text-white px-4"
-      style={{ backgroundColor: region.backgroundColor }}
+      className="relative flex justify-between items-center w-full h-10 transition-all duration-500 line-shadow shadow-sm border-b border-black/30 text-white px-4 text-lg uppercase"
+      style={{ backgroundColor: region.headerColor }}
     >
-      {/* Whiter shade */}
-      <div className="absolute top-0 left-0 bg-white/10 h-full w-full" />
+      <p className="font-Pixapp">Disco Zookeeper</p>
 
-      <p>Disco Zookeeper</p>
-
-      <p>
-        <strong>{attempts}</strong> attempt{attempts > 0 ? "s" : ""} left
+      <p className="flex gap-1 items-center">
+        <strong className="text-xl">{Math.max(attempts, 0)}</strong>
+        <span className="font-Pixapp">
+          attempt
+          {attempts > 1 ? "s" : ""} left
+        </span>
       </p>
     </div>
   );

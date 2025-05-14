@@ -5,21 +5,39 @@ import {
   getEmptyProbabilityGrid,
   getPossibleAnimalsGrids,
   getProbabilityGrid,
+  indexOfIdentifiedAnimal,
   percent,
   ProbabilityGrid,
 } from "@/assets/animalUtils";
 import { Region } from "@/assets/regions";
-import { useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import empty from "../app/sounds/empty.mp3";
+import foundOne from "../app/sounds/foundOne.mp3";
+import foundAll from "../app/sounds/foundAll.mp3";
+import useSound from "use-sound";
 
 const array5 = [0, 1, 2, 3, 4];
 
 type Props = {
   region: Region;
   animals: Array<Animal>;
+  animalCounts: number[];
+  setAnimalCounts: Dispatch<SetStateAction<number[]>>;
 };
 
-export default function Grid({ region, animals }: Props) {
-  const [hoveredTile, setHoveredTile] = useState<number[] | undefined>();
+export default function Grid({
+  region,
+  animals,
+  animalCounts,
+  setAnimalCounts,
+}: Props) {
   const [animalGrid, setAnimalGrid] = useState<AnimalGrid>(
     getEmptyAnimalGrid(true)
   );
@@ -30,15 +48,31 @@ export default function Grid({ region, animals }: Props) {
     getEmptyProbabilityGrid(0)
   );
 
+  // Sounds
+  const [playEmpty] = useSound(empty);
+  const [playFoundOne] = useSound(foundOne);
+  const [playFoundAll] = useSound(foundAll);
+
+  // Functions
+  const animalNames = useMemo(
+    () => animals.map((a) => a.name).join(","),
+    [animals]
+  );
   useEffect(() => {
     if (animals.length > 0) {
-      setPossibleAnimalGrids(getPossibleAnimalsGrids(animals));
-    } else {
       setAnimalGrid(getEmptyAnimalGrid(true));
-      setPossibleAnimalGrids([]);
-      setProbabilityGrid(getEmptyProbabilityGrid(0));
+      setAnimalCounts([0, 0, 0, 0]);
+      setPossibleAnimalGrids(getPossibleAnimalsGrids(animals));
     }
-  }, [animals]);
+  }, [animalNames]);
+
+  useEffect(() => {
+    if (animals.length === 0) {
+      setAnimalGrid(getEmptyAnimalGrid(true));
+      setAnimalCounts([0, 0, 0, 0]);
+      setPossibleAnimalGrids([]);
+    }
+  }, [animals.length]);
 
   useEffect(() => {
     const filteredGrids = possibleAnimalGrids.filter((grid) =>
@@ -50,17 +84,50 @@ export default function Grid({ region, animals }: Props) {
     setProbabilityGrid(getProbabilityGrid(filteredGrids, animals.length));
   }, [possibleAnimalGrids, animalGrid]);
 
+  const updateAnimalCounts = useCallback(
+    (grid: AnimalGrid) => {
+      const animalCounts = [0, 0, 0, 0];
+
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+          const value = grid[row][col];
+          if (value === null) {
+            animalCounts[3]++;
+          } else if (value !== undefined) {
+            animalCounts[value]++;
+          }
+        }
+      }
+
+      setAnimalCounts(animalCounts);
+    },
+    [setAnimalCounts]
+  );
+
+  const setAnimal = (row: number, col: number, value: number | null) => {
+    const newAnimalGrid = structuredClone(animalGrid);
+    newAnimalGrid[row][col] = value;
+
+    if (value === null) {
+      playEmpty();
+    } else if (animalCounts[value] === animals[value].coords.length - 1) {
+      playFoundAll();
+    } else {
+      playFoundOne();
+    }
+
+    setAnimalGrid(newAnimalGrid);
+    updateAnimalCounts(newAnimalGrid);
+  };
+
   return (
-    <div
-      className="flex flex-col h-fit"
-      onMouseLeave={() => setHoveredTile(undefined)}
-    >
+    <div className="flex flex-col h-fit shadow-md">
       {array5.map((_, row) => (
         <div key={`row-${row}`} className="flex flex-row">
           {array5.map((_, col) => (
             <div
               key={`col-${col}`}
-              className="relative h-23 w-23 flex justify-center"
+              className="relative h-26 w-26 flex justify-center"
             >
               <img
                 src={`/images/regions/${region.name}${
@@ -69,89 +136,89 @@ export default function Grid({ region, animals }: Props) {
                 className="absolute -top-[2%] -left-[2%] w-[104%] h-[104%] max-w-[104%] max-h-[104%] -z-10"
               />
 
-              {hoveredTile &&
-              hoveredTile[0] === row &&
-              hoveredTile[1] === col ? (
-                /* Hover : select choices */
-                <div className="w-full max-w-full grid grid-rows-[50%_50%] grid-cols-[50%_50%]">
-                  {[0, 1, 2].map((i) => (
-                    <div
-                      key={`presentAnimal-${i}`}
-                      className="w-full h-full p-1 border"
-                    >
-                      {animals[i] ? (
-                        <button
-                          className="w-full h-full"
-                          onClick={() => {
-                            setHoveredTile(undefined);
-                            setAnimalGrid((prev) => {
-                              const newAnimalGrid = structuredClone(prev);
-                              newAnimalGrid[row][col] = i;
-                              return newAnimalGrid;
-                            });
-                          }}
-                        >
-                          {i}
-                        </button>
-                      ) : (
-                        <div />
-                      )}
-                    </div>
-                  ))}
-
-                  <button
-                    className="w-full h-full"
-                    onClick={() => {
-                      setHoveredTile(undefined);
-                      setAnimalGrid((prev) => {
-                        const newAnimalGrid = structuredClone(prev);
-                        newAnimalGrid[row][col] = null;
-                        return newAnimalGrid;
-                      });
-                    }}
-                  >
-                    X
-                  </button>
-                </div>
-              ) : animalGrid[row][col] === null ? (
+              {!animals.length || animalGrid[row][col] === null ? (
                 <></>
               ) : animalGrid[row][col] !== undefined ? (
-                <img
-                  className="h-fit m-auto"
-                  src={`/images/animals/${
-                    animals[animalGrid[row][col]].name
-                  }.png`}
-                />
+                <>
+                  <img
+                    className="absolute top-[1px] left-0 w-full h-full p-[5%] z-10"
+                    src={`/images/rarities/${
+                      animals[animalGrid[row][col]].rarity.name
+                    }.png`}
+                  />
+                  <img
+                    className="w-[75%] h-[75%] m-auto z-20"
+                    src={`/images/animals/${
+                      animals[animalGrid[row][col]].name
+                    }.png`}
+                  />
+                </>
+              ) : /* Percentage */
+              indexOfIdentifiedAnimal(probabilityGrid[row][col].animalValues) >=
+                0 ? (
+                <div
+                  className="flex w-full h-full opacity-40 cursor-pointer"
+                  onClick={() =>
+                    setAnimal(
+                      row,
+                      col,
+                      indexOfIdentifiedAnimal(
+                        probabilityGrid[row][col].animalValues
+                      )
+                    )
+                  }
+                >
+                  <img
+                    className="absolute top-[1px] left-0 w-full h-full p-[5%] z-10"
+                    src={`/images/rarities/${
+                      animals[
+                        indexOfIdentifiedAnimal(
+                          probabilityGrid[row][col].animalValues
+                        )
+                      ].rarity.name
+                    }.png`}
+                  />
+                  <img
+                    className="relative w-[75%] h-[75%] m-auto z-20"
+                    src={`/images/animals/${
+                      animals[
+                        indexOfIdentifiedAnimal(
+                          probabilityGrid[row][col].animalValues
+                        )
+                      ].name
+                    }.png`}
+                  />
+                </div>
               ) : (
-                /* Percentage */
                 <div className="flex flex-col h-fit gap-0.5 m-auto text-center">
-                  {percent(probabilityGrid[row][col].value)}
-
-                  <div className="flex gap-1 m-auto">
-                    {animals.map((a, aIndex) => (
-                      <button
-                        key={`animal-percentage-${a.name}-${aIndex}`}
-                        className="flex flex-col gap-0.5 group"
-                        onClick={() =>
-                          setAnimalGrid((prev) => {
-                            const newAnimalGrid = structuredClone(prev);
-                            newAnimalGrid[row][col] = aIndex;
-                            return newAnimalGrid;
-                          })
-                        }
-                      >
-                        <img
-                          src={`/images/animals/${a.name}.png`}
-                          className="h-6 w-6 group-hover:shadow-[0_5px_5px_#00000080]"
-                        />
-                        <p className="text-[0.6rem]">
-                          {percent(
-                            probabilityGrid[row][col].animalValues[aIndex]
-                          )}
-                        </p>
-                      </button>
-                    ))}
+                  <div onClick={() => setAnimal(row, col, null)}>
+                    {percent(probabilityGrid[row][col].value)}
                   </div>
+                  {probabilityGrid[row][col].value > 0 && (
+                    <div className="flex gap-1 m-auto">
+                      {animals.map(
+                        (a, aIndex) =>
+                          probabilityGrid[row][col].animalValues[aIndex] >
+                            0 && (
+                            <button
+                              key={`animal-percentage-${a.name}-${aIndex}`}
+                              className="flex flex-col gap-0.5 group"
+                              onClick={() => setAnimal(row, col, aIndex)}
+                            >
+                              <img
+                                src={`/images/animals/${a.name}.png`}
+                                className="h-7 w-7 group-hover:shadow-[0_2px_3px_#00000080]"
+                              />
+                              <p className="text-[0.65rem]">
+                                {percent(
+                                  probabilityGrid[row][col].animalValues[aIndex]
+                                )}
+                              </p>
+                            </button>
+                          )
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
