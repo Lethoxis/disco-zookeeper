@@ -16,12 +16,12 @@
     [X] Style
 [ ] Grid
     [X] Set animal
-    [ ] Set null
+    [X] Set null
     [X] Calculate %
     [ ] Display max %
     [ ] Display max % for each animal
-    [ ] Reset button
-    [ ] Undo last action
+    [X] Reset button
+    [X] Undo last action
     [ ] Prioritize animal
     [X] Track number of attempts
 [ ] Sounds

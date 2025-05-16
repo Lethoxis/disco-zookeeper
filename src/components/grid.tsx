@@ -218,14 +218,18 @@ export default function Grid({
 
     // Display probabilities
     return (
-      <div className="flex flex-col h-fit gap-0.5 m-auto text-center">
-        <div className={isMax(pbty, maxProbability) ? "text-white" : ""}>
+      <div
+        className={`flex flex-col h-fit gap-0.5 mx-auto py-2.5 text-center ${
+          isMax(pbty, maxProbability) ? "outline outline-white" : ""
+        }`}
+      >
+        <p className={isMax(pbty, maxProbability) ? "text-white" : ""}>
           {percent(pbty.value)}
-        </div>
+        </p>
 
         {/* Set null */}
         <button
-          className="absolute top-1 right-1 h-5 w-5"
+          className="absolute top-2 right-1 h-5 w-5"
           onClick={() => setAnimal(row, col, null)}
         >
           <img
@@ -246,25 +250,21 @@ export default function Grid({
                 pbty.animalValues[aIndex] > 0 && (
                   <button
                     key={`animal-percentage-${a.name}-${aIndex}`}
-                    className="flex flex-col group"
+                    className={`flex flex-col group ${
+                      isMax(pbty, maxProbability, aIndex) &&
+                      false &&
+                      "outline outline-white"
+                    }`}
                     onClick={() => setAnimal(row, col, aIndex)}
                   >
                     <div className="relative flex h-8 w-8">
                       <AnimalTile
                         animal={a}
                         percentage={pbty.animalValues[aIndex] * 100}
-                        bgClassName={`${
-                          isMax(pbty, maxProbability, aIndex)
-                            ? " drop-shadow-white drop-shadow-lg/70 group-hover:drop-shadow-lg/100"
-                            : "group-hover:drop-shadow-md/30"
-                        }`}
+                        bgClassName="group-hover:drop-shadow-md/30"
                       />
                     </div>
-                    <p
-                      className={`font-Pixapp text-[0.7rem] ${
-                        isMax(pbty, maxProbability, aIndex) ? "text-white" : ""
-                      }`}
-                    >
+                    <p className={`font-Pixapp text-[0.7rem]`}>
                       {percent(pbty.animalValues[aIndex])}
                     </p>
                   </button>
@@ -284,7 +284,7 @@ export default function Grid({
           {array5.map((_, col) => (
             <div
               key={`col-${col}`}
-              className="relative h-26 w-26 flex justify-center"
+              className="relative h-26 w-26 flex justify-center items-center"
             >
               <img
                 src={`/images/regions/${region.name}${
