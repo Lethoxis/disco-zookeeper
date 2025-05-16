@@ -136,7 +136,7 @@ export const isMax = (
   max: Probability | undefined,
   animalIndex?: number
 ): boolean => {
-  if (!max) {
+  if (!max || max.value === 0) {
     return false;
   } else if (animalIndex !== undefined) {
     return (

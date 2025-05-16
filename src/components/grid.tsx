@@ -219,59 +219,61 @@ export default function Grid({
     // Display probabilities
     return (
       <div
-        className={`flex flex-col h-fit gap-0.5 mx-auto py-2.5 text-center ${
-          isMax(pbty, maxProbability) ? "outline outline-white" : ""
+        className={`flex w-25 h-25 ${
+          isMax(pbty, maxProbability) ? "border-2 border-white" : ""
         }`}
       >
-        <p className={isMax(pbty, maxProbability) ? "text-white" : ""}>
-          {percent(pbty.value)}
-        </p>
-
-        {/* Set null */}
-        <button
-          className="absolute top-2 right-1 h-5 w-5"
-          onClick={() => setAnimal(row, col, null)}
-        >
-          <img
-            className="absolute top-0 left-0 w-full h-full z-10"
-            src={`/images/ui/x.png`}
-          />
-          <p className="relative m-auto z-20 text-white text-[0.5rem] text-shadow-md">
-            X
+        <div className="flex flex-col h-fit gap-0.5 m-auto text-center">
+          <p className={isMax(pbty, maxProbability) ? "text-white" : ""}>
+            {percent(pbty.value)}
           </p>
-        </button>
 
-        {pbty.value > 0 && (
-          <div className="flex m-auto">
-            {/* Animals */}
-            {animals.map(
-              (a, aIndex) =>
-                a &&
-                pbty.animalValues[aIndex] > 0 && (
-                  <button
-                    key={`animal-percentage-${a.name}-${aIndex}`}
-                    className={`flex flex-col group ${
-                      isMax(pbty, maxProbability, aIndex) &&
-                      false &&
-                      "outline outline-white"
-                    }`}
-                    onClick={() => setAnimal(row, col, aIndex)}
-                  >
-                    <div className="relative flex h-8 w-8">
-                      <AnimalTile
-                        animal={a}
-                        percentage={pbty.animalValues[aIndex] * 100}
-                        bgClassName="group-hover:drop-shadow-md/30"
-                      />
-                    </div>
-                    <p className={`font-Pixapp text-[0.7rem]`}>
-                      {percent(pbty.animalValues[aIndex])}
-                    </p>
-                  </button>
-                )
-            )}
-          </div>
-        )}
+          {/* Set null */}
+          <button
+            className="absolute top-1 right-1 h-5 w-5"
+            onClick={() => setAnimal(row, col, null)}
+          >
+            <img
+              className="absolute top-0 left-0 w-full h-full z-10"
+              src={`/images/ui/x.png`}
+            />
+            <p className="relative m-auto z-20 text-white text-[0.5rem] text-shadow-md">
+              X
+            </p>
+          </button>
+
+          {pbty.value > 0 && (
+            <div className="flex m-auto">
+              {/* Animals */}
+              {animals.map(
+                (a, aIndex) =>
+                  a &&
+                  pbty.animalValues[aIndex] > 0 && (
+                    <button
+                      key={`animal-percentage-${a.name}-${aIndex}`}
+                      className={`flex flex-col group ${
+                        isMax(pbty, maxProbability, aIndex) &&
+                        false &&
+                        "outline outline-white"
+                      }`}
+                      onClick={() => setAnimal(row, col, aIndex)}
+                    >
+                      <div className="relative flex h-8 w-8">
+                        <AnimalTile
+                          animal={a}
+                          percentage={pbty.animalValues[aIndex] * 100}
+                          bgClassName="group-hover:drop-shadow-md/30"
+                        />
+                      </div>
+                      <p className={`font-Pixapp text-[0.7rem]`}>
+                        {percent(pbty.animalValues[aIndex])}
+                      </p>
+                    </button>
+                  )
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
